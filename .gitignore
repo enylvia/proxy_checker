@@ -1,0 +1,14 @@
+# Binaries
+proxy-checker
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Local proxy files
+proxy.txt
+active.txt
+
+# Go dependencies
+vendor/
