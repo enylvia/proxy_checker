@@ -27,7 +27,6 @@ type Result struct {
 	Protocol string
 	Alive    bool
 	Elapsed  time.Duration
-	Origin   string
 }
 
 func main() {
@@ -90,7 +89,7 @@ func main() {
 
 	for res := range results {
 		if res.Alive {
-			fmt.Printf("%s[ALIVE]%s [%-6s] %-20s | Respon: %-8v | IP: %s\n", ColorGreen, ColorReset, res.Protocol, res.Proxy, res.Elapsed, res.Origin)
+			fmt.Printf("%s[ALIVE]%s [%-6s] %-20s | Respon: %-8v\n", ColorGreen, ColorReset, res.Protocol, res.Proxy, res.Elapsed)
 			writer.WriteString(fmt.Sprintf("%s://%s\n", res.Protocol, res.Proxy))
 			aliveCount++
 		} else {
@@ -133,18 +132,13 @@ func check(proxyAddr, protocol, target string, timeout time.Duration, results ch
 		results <- Result{Proxy: proxyAddr, Protocol: protocol, Alive: false}
 		return
 	}
-	defer resp.Body.Close()
+	resp.Body.Close() // Langsung tutup body tanpa dibaca
 
 	elapsed := time.Since(start)
 
 	if resp.StatusCode == 200 {
-		var result struct {
-			Origin string `json:"origin"`
-		}
-		if err := json.NewDecoder(resp.Body).Decode(&result); err == nil {
-			results <- Result{Proxy: proxyAddr, Protocol: protocol, Alive: true, Elapsed: elapsed, Origin: result.Origin}
-			return
-		}
+		results <- Result{Proxy: proxyAddr, Protocol: protocol, Alive: true, Elapsed: elapsed}
+		return
 	}
 	results <- Result{Proxy: proxyAddr, Protocol: protocol, Alive: false}
 }
